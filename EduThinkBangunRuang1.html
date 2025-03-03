@@ -150,7 +150,8 @@
                 <p>Klik salah satu bangun ruang untuk melihat informasi dan model 3D-nya!</p>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+                <h3 class="col-span-full text-xl font-semibold mb-2 text-gray-800 dark:text-white">Bangun Ruang Dasar</h3>
                 <button class="shape-button bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-center" data-shape="cube">
                     <div class="w-16 h-16 bg-accent rounded-md mb-2 flex items-center justify-center">
                         <span class="text-2xl">▣</span>
@@ -185,12 +186,67 @@
                     </div>
                     <span class="font-semibold text-center dark:text-white">Kerucut</span>
                 </button>
-                
-                <button class="shape-button bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-center" data-shape="pyramid">
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+                <h3 class="col-span-full text-xl font-semibold mb-2 text-gray-800 dark:text-white">Prisma</h3>
+                <button class="shape-button bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-center" data-shape="triangularPrism">
                     <div class="w-16 h-16 bg-primary rounded-md mb-2 flex items-center justify-center">
+                        <span class="text-2xl">⌔</span>
+                    </div>
+                    <span class="font-semibold text-center dark:text-white">Prisma Segitiga</span>
+                </button>
+                
+                <button class="shape-button bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-center" data-shape="rectangularPrism">
+                    <div class="w-16 h-16 bg-secondary rounded-md mb-2 flex items-center justify-center">
+                        <span class="text-2xl">▭</span>
+                    </div>
+                    <span class="font-semibold text-center dark:text-white">Prisma Segiempat</span>
+                </button>
+                
+                <button class="shape-button bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-center" data-shape="pentagonalPrism">
+                    <div class="w-16 h-16 bg-accent rounded-md mb-2 flex items-center justify-center">
+                        <span class="text-2xl">⬠</span>
+                    </div>
+                    <span class="font-semibold text-center dark:text-white">Prisma Segilima</span>
+                </button>
+                
+                <button class="shape-button bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-center" data-shape="hexagonalPrism">
+                    <div class="w-16 h-16 bg-success rounded-md mb-2 flex items-center justify-center">
+                        <span class="text-2xl">⬡</span>
+                    </div>
+                    <span class="font-semibold text-center dark:text-white">Prisma Segienam</span>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <h3 class="col-span-full text-xl font-semibold mb-2 text-gray-800 dark:text-white">Limas</h3>
+                <button class="shape-button bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-center" data-shape="triangularPyramid">
+                    <div class="w-16 h-16 bg-warning rounded-md mb-2 flex items-center justify-center">
                         <span class="text-2xl">△</span>
                     </div>
-                    <span class="font-semibold text-center dark:text-white">Limas</span>
+                    <span class="font-semibold text-center dark:text-white">Limas Segitiga</span>
+                </button>
+                
+                <button class="shape-button bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-center" data-shape="squarePyramid">
+                    <div class="w-16 h-16 bg-danger rounded-md mb-2 flex items-center justify-center">
+                        <span class="text-2xl">◮</span>
+                    </div>
+                    <span class="font-semibold text-center dark:text-white">Limas Segiempat</span>
+                </button>
+                
+                <button class="shape-button bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-center" data-shape="pentagonalPyramid">
+                    <div class="w-16 h-16 bg-primary rounded-md mb-2 flex items-center justify-center">
+                        <span class="text-2xl">⬟</span>
+                    </div>
+                    <span class="font-semibold text-center dark:text-white">Limas Segilima</span>
+                </button>
+                
+                <button class="shape-button bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-lg transition flex flex-col items-center justify-center" data-shape="hexagonalPyramid">
+                    <div class="w-16 h-16 bg-secondary rounded-md mb-2 flex items-center justify-center">
+                        <span class="text-2xl">⬢</span>
+                    </div>
+                    <span class="font-semibold text-center dark:text-white">Limas Segienam</span>
                 </button>
             </div>
         </div>
@@ -368,13 +424,69 @@
                 vertices: "1 titik sudut (puncak)",
                 examples: "Es krim kerucut, Topi ulang tahun, Corong"
             },
-            pyramid: {
-                title: "Limas",
-                description: "Limas adalah bangun ruang tiga dimensi yang terdiri dari satu sisi alas berbentuk segi-n dan sisi-sisi tegak berbentuk segitiga yang bertemu pada satu titik puncak.",
+            triangularPrism: {
+                title: "Prisma Segitiga",
+                description: "Prisma segitiga adalah bangun ruang tiga dimensi yang dibatasi oleh dua sisi berbentuk segitiga yang sejajar dan sama, serta tiga sisi berbentuk persegi panjang yang menghubungkan sisi segitiga tersebut.",
+                faces: "5 sisi (2 segitiga dan 3 persegi panjang)",
+                edges: "9 rusuk",
+                vertices: "6 titik sudut",
+                examples: "Atap rumah, Coklat Toblerone, Tenda camping"
+            },
+            rectangularPrism: {
+                title: "Prisma Segiempat",
+                description: "Prisma segiempat atau yang lebih dikenal sebagai balok adalah bangun ruang tiga dimensi yang dibatasi oleh enam sisi berbentuk persegi panjang. Sisi-sisi yang berhadapan memiliki bentuk dan ukuran yang sama.",
+                faces: "6 sisi berbentuk persegi panjang",
+                edges: "12 rusuk",
+                vertices: "8 titik sudut",
+                examples: "Kotak sepatu, Lemari, Buku, Kardus"
+            },
+            pentagonalPrism: {
+                title: "Prisma Segilima",
+                description: "Prisma segilima adalah bangun ruang tiga dimensi yang dibatasi oleh dua sisi berbentuk segilima yang sejajar dan sama, serta lima sisi berbentuk persegi panjang yang menghubungkan sisi-sisi segilima tersebut.",
+                faces: "7 sisi (2 segilima dan 5 persegi panjang)",
+                edges: "15 rusuk",
+                vertices: "10 titik sudut",
+                examples: "Pensil segilima, Bangunan Pentagon, Kemasan produk khusus"
+            },
+            hexagonalPrism: {
+                title: "Prisma Segienam",
+                description: "Prisma segienam adalah bangun ruang tiga dimensi yang dibatasi oleh dua sisi berbentuk segienam yang sejajar dan sama, serta enam sisi berbentuk persegi panjang yang menghubungkan sisi-sisi segienam tersebut.",
+                faces: "8 sisi (2 segienam dan 6 persegi panjang)",
+                edges: "18 rusuk",
+                vertices: "12 titik sudut",
+                examples: "Sarang lebah, Pensil segienam, Mur (baut)"
+            },
+            triangularPyramid: {
+                title: "Limas Segitiga",
+                description: "Limas segitiga adalah bangun ruang tiga dimensi yang dibentuk oleh satu sisi alas berbentuk segitiga dan tiga sisi tegak berbentuk segitiga yang bertemu pada satu titik puncak.",
+                faces: "4 sisi berbentuk segitiga",
+                edges: "6 rusuk",
+                vertices: "4 titik sudut",
+                examples: "Tetrahedron (dalam permainan dadu), Piramida India kuno, Model molekul"
+            },
+            squarePyramid: {
+                title: "Limas Segiempat",
+                description: "Limas segiempat adalah bangun ruang tiga dimensi yang dibentuk oleh satu sisi alas berbentuk persegi atau persegi panjang dan empat sisi tegak berbentuk segitiga yang bertemu pada satu titik puncak.",
                 faces: "5 sisi (1 persegi dan 4 segitiga)",
                 edges: "8 rusuk",
                 vertices: "5 titik sudut",
-                examples: "Piramida Mesir, Atap rumah, Tenda camping"
+                examples: "Piramida Mesir, Atap rumah tradisional, Hiasan dekoratif"
+            },
+            pentagonalPyramid: {
+                title: "Limas Segilima",
+                description: "Limas segilima adalah bangun ruang tiga dimensi yang dibentuk oleh satu sisi alas berbentuk segilima dan lima sisi tegak berbentuk segitiga yang bertemu pada satu titik puncak.",
+                faces: "6 sisi (1 segilima dan 5 segitiga)",
+                edges: "10 rusuk",
+                vertices: "6 titik sudut",
+                examples: "Kubah bangunan modern, Hiasan kristal, Model arsitektur"
+            },
+            hexagonalPyramid: {
+                title: "Limas Segienam",
+                description: "Limas segienam adalah bangun ruang tiga dimensi yang dibentuk oleh satu sisi alas berbentuk segienam dan enam sisi tegak berbentuk segitiga yang bertemu pada satu titik puncak.",
+                faces: "7 sisi (1 segienam dan 6 segitiga)",
+                edges: "12 rusuk",
+                vertices: "7 titik sudut",
+                examples: "Kubah bangunan modern, Kristal quartz, Struktur bangunan geometris"
             }
         };
 
@@ -540,7 +652,167 @@
                     feedback: "Alas kerucut berbentuk lingkaran."
                 }
             ],
-            pyramid: [
+            triangularPrism: [
+                {
+                    question: "Berapa jumlah sisi pada prisma segitiga?",
+                    options: ["3", "5", "6", "8"],
+                    answer: 1,
+                    feedback: "Prisma segitiga memiliki 5 sisi: 2 segitiga dan 3 persegi panjang."
+                },
+                {
+                    question: "Berapa jumlah rusuk pada prisma segitiga?",
+                    options: ["6", "9", "12", "15"],
+                    answer: 1,
+                    feedback: "Prisma segitiga memiliki 9 rusuk."
+                },
+                {
+                    question: "Berapa jumlah titik sudut pada prisma segitiga?",
+                    options: ["3", "5", "6", "8"],
+                    answer: 2,
+                    feedback: "Prisma segitiga memiliki 6 titik sudut: 3 pada alas dan 3 pada tutup."
+                },
+                {
+                    question: "Manakah yang merupakan contoh prisma segitiga dalam kehidupan sehari-hari?",
+                    options: ["Botol minum", "Dadu", "Coklat Toblerone", "Bola basket"],
+                    answer: 2,
+                    feedback: "Coklat Toblerone memiliki bentuk prisma segitiga."
+                },
+                {
+                    question: "Berbentuk apakah alas dan tutup prisma segitiga?",
+                    options: ["Persegi", "Lingkaran", "Segitiga", "Segilima"],
+                    answer: 2,
+                    feedback: "Alas dan tutup prisma segitiga berbentuk segitiga."
+                }
+            ],
+            rectangularPrism: [
+                {
+                    question: "Berapa jumlah sisi pada prisma segiempat?",
+                    options: ["4", "6", "8", "10"],
+                    answer: 1,
+                    feedback: "Prisma segiempat (balok) memiliki 6 sisi berbentuk persegi panjang."
+                },
+                {
+                    question: "Berapa jumlah rusuk pada prisma segiempat?",
+                    options: ["8", "10", "12", "16"],
+                    answer: 2,
+                    feedback: "Prisma segiempat memiliki 12 rusuk."
+                },
+                {
+                    question: "Berapa jumlah titik sudut pada prisma segiempat?",
+                    options: ["4", "6", "8", "12"],
+                    answer: 2,
+                    feedback: "Prisma segiempat memiliki 8 titik sudut."
+                },
+                {
+                    question: "Manakah yang merupakan contoh prisma segiempat dalam kehidupan sehari-hari?",
+                    options: ["Kelereng", "Kotak kapur", "Topi ulang tahun", "Kaleng minuman"],
+                    answer: 1,
+                    feedback: "Kotak kapur adalah contoh prisma segiempat (balok)."
+                },
+                {
+                    question: "Apa nama lain dari prisma segiempat?",
+                    options: ["Kubus", "Balok", "Limas", "Tabung"],
+                    answer: 1,
+                    feedback: "Prisma segiempat juga dikenal sebagai balok."
+                }
+            ],
+            pentagonalPrism: [
+                {
+                    question: "Berapa jumlah sisi pada prisma segilima?",
+                    options: ["5", "7", "10", "12"],
+                    answer: 1,
+                    feedback: "Prisma segilima memiliki 7 sisi: 2 segilima dan 5 persegi panjang."
+                },
+                {
+                    question: "Berapa jumlah rusuk pada prisma segilima?",
+                    options: ["10", "12", "15", "20"],
+                    answer: 2,
+                    feedback: "Prisma segilima memiliki 15 rusuk."
+                },
+                {
+                    question: "Berapa jumlah titik sudut pada prisma segilima?",
+                    options: ["5", "8", "10", "15"],
+                    answer: 2,
+                    feedback: "Prisma segilima memiliki 10 titik sudut: 5 pada alas dan 5 pada tutup."
+                },
+                {
+                    question: "Berbentuk apakah alas dan tutup prisma segilima?",
+                    options: ["Persegi", "Segitiga", "Segiempat", "Segilima"],
+                    answer: 3,
+                    feedback: "Alas dan tutup prisma segilima berbentuk segilima."
+                },
+                {
+                    question: "Manakah yang merupakan contoh prisma segilima dalam kehidupan sehari-hari?",
+                    options: ["Kaleng minuman", "Bangunan Pentagon", "Dadu", "Bola basket"],
+                    answer: 1,
+                    feedback: "Bangunan Pentagon adalah contoh yang terinspirasi oleh prisma segilima."
+                }
+            ],
+            hexagonalPrism: [
+                {
+                    question: "Berapa jumlah sisi pada prisma segienam?",
+                    options: ["6", "8", "10", "12"],
+                    answer: 1,
+                    feedback: "Prisma segienam memiliki 8 sisi: 2 segienam dan 6 persegi panjang."
+                },
+                {
+                    question: "Berapa jumlah rusuk pada prisma segienam?",
+                    options: ["12", "15", "18", "24"],
+                    answer: 2,
+                    feedback: "Prisma segienam memiliki 18 rusuk."
+                },
+                {
+                    question: "Berapa jumlah titik sudut pada prisma segienam?",
+                    options: ["6", "10", "12", "18"],
+                    answer: 2,
+                    feedback: "Prisma segienam memiliki 12 titik sudut: 6 pada alas dan 6 pada tutup."
+                },
+                {
+                    question: "Manakah yang merupakan contoh prisma segienam dalam kehidupan sehari-hari?",
+                    options: ["Kotak sepatu", "Kaleng minuman", "Pensil segienam", "Bola basket"],
+                    answer: 2,
+                    feedback: "Pensil segienam adalah contoh prisma segienam."
+                },
+                {
+                    question: "Apa contoh struktur alami yang menyerupai prisma segienam?",
+                    options: ["Kristal salju", "Daun", "Sarang lebah", "Kerang laut"],
+                    answer: 2,
+                    feedback: "Sarang lebah terdiri dari sel-sel berbentuk prisma segienam."
+                }
+            ],
+            triangularPyramid: [
+                {
+                    question: "Berapa jumlah sisi pada limas segitiga?",
+                    options: ["3", "4", "5", "6"],
+                    answer: 1,
+                    feedback: "Limas segitiga memiliki 4 sisi, semuanya berbentuk segitiga."
+                },
+                {
+                    question: "Berapa jumlah rusuk pada limas segitiga?",
+                    options: ["4", "6", "8", "12"],
+                    answer: 1,
+                    feedback: "Limas segitiga memiliki 6 rusuk."
+                },
+                {
+                    question: "Berapa jumlah titik sudut pada limas segitiga?",
+                    options: ["3", "4", "5", "6"],
+                    answer: 1,
+                    feedback: "Limas segitiga memiliki 4 titik sudut: 3 pada alas dan 1 di puncak."
+                },
+                {
+                    question: "Nama lain dari limas segitiga adalah...",
+                    options: ["Tetrahedron", "Oktahedron", "Heksahedron", "Prisma segitiga"],
+                    answer: 0,
+                    feedback: "Limas segitiga juga disebut tetrahedron, salah satu bentuk platonic solid."
+                },
+                {
+                    question: "Manakah yang merupakan contoh limas segitiga dalam kehidupan sehari-hari?",
+                    options: ["Gantungan kunci piramida", "Kotak tisu", "Dadu berbentuk tetrahedron", "Kaleng minuman"],
+                    answer: 2,
+                    feedback: "Beberapa jenis dadu khusus berbentuk tetrahedron (limas segitiga)."
+                }
+            ],
+            squarePyramid: [
                 {
                     question: "Berapa jumlah sisi pada limas segiempat?",
                     options: ["4", "5", "6", "8"],
@@ -560,16 +832,80 @@
                     feedback: "Limas segiempat memiliki 5 titik sudut: 4 pada alas dan 1 di puncak."
                 },
                 {
-                    question: "Manakah yang merupakan contoh limas dalam kehidupan sehari-hari?",
+                    question: "Manakah yang merupakan contoh limas segiempat dalam kehidupan sehari-hari?",
                     options: ["Kotak sepatu", "Kaleng minuman", "Piramida Mesir", "Bola basket"],
                     answer: 2,
-                    feedback: "Piramida Mesir adalah contoh limas dalam kehidupan sehari-hari."
+                    feedback: "Piramida Mesir adalah contoh limas segiempat dalam kehidupan sehari-hari."
                 },
                 {
-                    question: "Berbentuk apakah sisi tegak pada limas?",
+                    question: "Berbentuk apakah sisi tegak pada limas segiempat?",
                     options: ["Persegi", "Persegi panjang", "Segitiga", "Lingkaran"],
                     answer: 2,
-                    feedback: "Sisi tegak pada limas berbentuk segitiga."
+                    feedback: "Sisi tegak pada limas segiempat berbentuk segitiga."
+                }
+            ],
+            pentagonalPyramid: [
+                {
+                    question: "Berapa jumlah sisi pada limas segilima?",
+                    options: ["5", "6", "7", "10"],
+                    answer: 1,
+                    feedback: "Limas segilima memiliki 6 sisi: 1 alas berbentuk segilima dan 5 sisi tegak berbentuk segitiga."
+                },
+                {
+                    question: "Berapa jumlah rusuk pada limas segilima?",
+                    options: ["5", "10", "15", "20"],
+                    answer: 1,
+                    feedback: "Limas segilima memiliki 10 rusuk."
+                },
+                {
+                    question: "Berapa jumlah titik sudut pada limas segilima?",
+                    options: ["5", "6", "10", "15"],
+                    answer: 1,
+                    feedback: "Limas segilima memiliki 6 titik sudut: 5 pada alas dan 1 di puncak."
+                },
+                {
+                    question: "Berbentuk apakah alas limas segilima?",
+                    options: ["Segitiga", "Segiempat", "Segilima", "Segienam"],
+                    answer: 2,
+                    feedback: "Alas limas segilima berbentuk segilima."
+                },
+                {
+                    question: "Berapa banyak sisi tegak pada limas segilima?",
+                    options: ["3", "4", "5", "6"],
+                    answer: 2,
+                    feedback: "Limas segilima memiliki 5 sisi tegak yang semuanya berbentuk segitiga."
+                }
+            ],
+            hexagonalPyramid: [
+                {
+                    question: "Berapa jumlah sisi pada limas segienam?",
+                    options: ["6", "7", "8", "12"],
+                    answer: 1,
+                    feedback: "Limas segienam memiliki 7 sisi: 1 alas berbentuk segienam dan 6 sisi tegak berbentuk segitiga."
+                },
+                {
+                    question: "Berapa jumlah rusuk pada limas segienam?",
+                    options: ["6", "12", "18", "24"],
+                    answer: 1,
+                    feedback: "Limas segienam memiliki 12 rusuk."
+                },
+                {
+                    question: "Berapa jumlah titik sudut pada limas segienam?",
+                    options: ["6", "7", "8", "13"],
+                    answer: 1,
+                    feedback: "Limas segienam memiliki 7 titik sudut: 6 pada alas dan 1 di puncak."
+                },
+                {
+                    question: "Berbentuk apakah alas limas segienam?",
+                    options: ["Segiempat", "Segilima", "Segienam", "Segidelapan"],
+                    answer: 2,
+                    feedback: "Alas limas segienam berbentuk segienam."
+                },
+                {
+                    question: "Berapa banyak sisi tegak pada limas segienam?",
+                    options: ["4", "5", "6", "7"],
+                    answer: 2,
+                    feedback: "Limas segienam memiliki 6 sisi tegak yang semuanya berbentuk segitiga."
                 }
             ]
         };
@@ -712,6 +1048,7 @@
                     shape3D = new THREE.Mesh(geometry, materials);
                     break;
                 case 'cuboid':
+                case 'rectangularPrism':
                     geometry = new THREE.BoxGeometry(2.5, 1.5, 1);
                     shape3D = new THREE.Mesh(geometry, materials);
                     break;
@@ -730,9 +1067,113 @@
                     material = new THREE.MeshPhongMaterial({ color: 0xEF476F });
                     shape3D = new THREE.Mesh(geometry, material);
                     break;
-                case 'pyramid':
-                    geometry = new THREE.ConeGeometry(1.2, 2, 4);
+                case 'triangularPrism':
+                    // Create triangular prism
+                    const trianglePrismGroup = new THREE.Group();
+                    
+                    // Create triangular faces
+                    const triangleShape = new THREE.Shape();
+                    triangleShape.moveTo(0, 1);
+                    triangleShape.lineTo(-0.866, -0.5);
+                    triangleShape.lineTo(0.866, -0.5);
+                    triangleShape.lineTo(0, 1);
+                    
+                    // Extrude the triangle to create the prism
+                    const extrudeSettings = {
+                        depth: 2,
+                        bevelEnabled: false
+                    };
+                    
+                    geometry = new THREE.ExtrudeGeometry(triangleShape, extrudeSettings);
                     material = new THREE.MeshPhongMaterial({ color: 0x5D5CDE });
+                    shape3D = new THREE.Mesh(geometry, material);
+                    shape3D.position.set(0, 0, -1);
+                    break;
+                case 'pentagonalPrism':
+                    // Create pentagonal prism
+                    const pentagonPrismGroup = new THREE.Group();
+                    
+                    // Create pentagon shape
+                    const pentagonShape = new THREE.Shape();
+                    const pentagonRadius = 1;
+                    const pentagonSides = 5;
+                    
+                    for (let i = 0; i < pentagonSides; i++) {
+                        const angle = (i / pentagonSides) * Math.PI * 2;
+                        const x = Math.sin(angle) * pentagonRadius;
+                        const y = Math.cos(angle) * pentagonRadius;
+                        
+                        if (i === 0) {
+                            pentagonShape.moveTo(x, y);
+                        } else {
+                            pentagonShape.lineTo(x, y);
+                        }
+                    }
+                    pentagonShape.closePath();
+                    
+                    // Extrude the pentagon to create the prism
+                    const pentagonExtrudeSettings = {
+                        depth: 2,
+                        bevelEnabled: false
+                    };
+                    
+                    geometry = new THREE.ExtrudeGeometry(pentagonShape, pentagonExtrudeSettings);
+                    material = new THREE.MeshPhongMaterial({ color: 0xFFD166 });
+                    shape3D = new THREE.Mesh(geometry, material);
+                    shape3D.position.set(0, 0, -1);
+                    break;
+                case 'hexagonalPrism':
+                    // Create hexagonal prism
+                    const hexagonPrismGroup = new THREE.Group();
+                    
+                    // Create hexagon shape
+                    const hexagonShape = new THREE.Shape();
+                    const hexagonRadius = 1;
+                    const hexagonSides = 6;
+                    
+                    for (let i = 0; i < hexagonSides; i++) {
+                        const angle = (i / hexagonSides) * Math.PI * 2;
+                        const x = Math.sin(angle) * hexagonRadius;
+                        const y = Math.cos(angle) * hexagonRadius;
+                        
+                        if (i === 0) {
+                            hexagonShape.moveTo(x, y);
+                        } else {
+                            hexagonShape.lineTo(x, y);
+                        }
+                    }
+                    hexagonShape.closePath();
+                    
+                    // Extrude the hexagon to create the prism
+                    const hexagonExtrudeSettings = {
+                        depth: 2,
+                        bevelEnabled: false
+                    };
+                    
+                    geometry = new THREE.ExtrudeGeometry(hexagonShape, hexagonExtrudeSettings);
+                    material = new THREE.MeshPhongMaterial({ color: 0x06D6A0 });
+                    shape3D = new THREE.Mesh(geometry, material);
+                    shape3D.position.set(0, 0, -1);
+                    break;
+                case 'triangularPyramid':
+                    // Create tetrahedron (triangular pyramid)
+                    geometry = new THREE.TetrahedronGeometry(1.5);
+                    material = new THREE.MeshPhongMaterial({ color: 0xFFD166 });
+                    shape3D = new THREE.Mesh(geometry, material);
+                    break;
+                case 'squarePyramid':
+                    geometry = new THREE.ConeGeometry(1.2, 2, 4);
+                    material = new THREE.MeshPhongMaterial({ color: 0xEF476F });
+                    shape3D = new THREE.Mesh(geometry, material);
+                    break;
+                case 'pentagonalPyramid':
+                    geometry = new THREE.ConeGeometry(1.2, 2, 5);
+                    material = new THREE.MeshPhongMaterial({ color: 0x5D5CDE });
+                    shape3D = new THREE.Mesh(geometry, material);
+                    break;
+                case 'hexagonalPyramid':
+                    geometry = new THREE.ConeGeometry(1.2, 2, 6);
+                    material = new THREE.MeshPhongMaterial({ color: 0xFF6B6B });
                     shape3D = new THREE.Mesh(geometry, material);
                     break;
             }
