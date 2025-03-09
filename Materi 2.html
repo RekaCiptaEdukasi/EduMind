@@ -1,0 +1,1708 @@
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Shapes Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/three@0.137.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.137.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        :root {
+            --primary-color: #5D5CDE;
+            --secondary-color: #9797FF;
+            --light-bg: #FFFFFF;
+            --dark-bg: #181818;
+            --light-text: #333333;
+            --dark-text: #EEEEEE;
+            --light-card: #F8F8FF;
+            --dark-card: #2A2A3A;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .shape-card {
+                background-color: var(--dark-card);
+                color: var(--dark-text);
+            }
+            body {
+                background-color: var(--dark-bg);
+                color: var(--dark-text);
+            }
+            .highlight {
+                color: var(--secondary-color);
+            }
+            .shape-title {
+                color: var(--secondary-color);
+            }
+            .shape-options {
+                background-color: #353545;
+                border-color: #454555;
+            }
+            .btn-variant {
+                background-color: #35354A;
+                color: var(--dark-text);
+            }
+            .btn-variant.active {
+                background-color: var(--primary-color);
+                color: white;
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .shape-card {
+                background-color: var(--light-card);
+                color: var(--light-text);
+            }
+            body {
+                background-color: var(--light-bg);
+                color: var(--light-text);
+            }
+            .highlight {
+                color: var(--primary-color);
+            }
+            .shape-title {
+                color: var(--primary-color);
+            }
+            .shape-options {
+                background-color: #F0F0FF;
+                border-color: #E0E0F0;
+            }
+            .btn-variant {
+                background-color: #EEEEF8;
+                color: var(--light-text);
+            }
+            .btn-variant.active {
+                background-color: var(--primary-color);
+                color: white;
+            }
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 0;
+            padding-bottom: 80%; /* Maintain aspect ratio */
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            will-change: transform; /* Optimize for animations */
+            transform: translateZ(0); /* Force GPU acceleration */
+            backface-visibility: hidden; /* Prevent flickering */
+        }
+
+        .canvas-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            display: block; /* Prevent inline gap issues */
+            will-change: transform; /* Optimize for animations */
+            transform: translateZ(0); /* Force GPU acceleration */
+        }
+
+        .property-badge {
+            background-color: var(--primary-color);
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            display: inline-block;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .rotate-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(93, 92, 222, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes highlight-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(93, 92, 222, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(93, 92, 222, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(93, 92, 222, 0); }
+        }
+
+        .shape-card.active {
+            animation: highlight-pulse 2s infinite;
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-variant {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin: 0 2px;
+            margin-bottom: 4px;
+        }
+        
+        .btn-variant:hover {
+            transform: translateY(-1px);
+        }
+        
+        .shape-options {
+            border-radius: 6px;
+            border-width: 1px;
+            padding: 6px;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .shape-options.visible {
+            display: block;
+        }
+
+        /* Loading state for canvases */
+        .loading-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0,0,0,0.1);
+            z-index: 5;
+            backface-visibility: hidden;
+        }
+
+        .loading-indicator::after {
+            content: "";
+            width: 30px;
+            height: 30px;
+            border: 4px solid var(--primary-color);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error message styling */
+        .error-message {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255,0,0,0.1);
+            color: #FF5555;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+    <div class="container mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold highlight">Eksplorasi Bangun Ruang</h1>
+            <p class="mt-2 text-lg">Mari belajar tentang bentuk 3D dan sifat-sifatnya</p>
+        </header>
+
+        <div class="mb-6">
+            <div id="intro-content" class="text-center mb-6">
+                <p class="text-lg mb-4">Pilih bentuk 3D di bawah ini untuk mempelajari lebih lanjut</p>
+                <p class="mb-2"><span class="font-semibold">Keterangan:</span> Bangun ruang memiliki beberapa elemen penting:</p>
+                <div class="flex flex-wrap justify-center gap-3 mt-2">
+                    <div class="property-badge">Sisi (Face)</div>
+                    <div class="property-badge">Rusuk (Edge)</div>
+                    <div class="property-badge">Titik Sudut (Vertex)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <!-- Kubus / Cube -->
+            <div class="shape-card rounded-lg p-4 shadow-lg transition-all hover:shadow-xl" data-shape="cube">
+                <h2 class="text-xl font-bold mb-2 shape-title">Kubus</h2>
+                <div class="canvas-container relative">
+                    <div class="loading-indicator" id="cubeLoading"></div>
+                    <canvas id="cubeCanvas"></canvas>
+                    <div class="rotate-hint">Geser untuk memutar</div>
+                </div>
+                <div class="mt-3">
+                    <p class="font-semibold">Deskripsi:</p>
+                    <p class="mb-2">Kubus adalah bangun ruang dengan 6 sisi berbentuk persegi yang sama besar.</p>
+                    <div class="properties mt-2">
+                        <div><span class="font-semibold">Sisi:</span> <span class="highlight font-bold">6</span> sisi berbentuk persegi</div>
+                        <div><span class="font-semibold">Rusuk:</span> <span class="highlight font-bold">12</span> rusuk</div>
+                        <div><span class="font-semibold">Titik Sudut:</span> <span class="highlight font-bold">8</span> titik sudut</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balok / Cuboid -->
+            <div class="shape-card rounded-lg p-4 shadow-lg transition-all hover:shadow-xl" data-shape="cuboid">
+                <h2 class="text-xl font-bold mb-2 shape-title">Balok</h2>
+                <div class="canvas-container relative">
+                    <div class="loading-indicator" id="cuboidLoading"></div>
+                    <canvas id="cuboidCanvas"></canvas>
+                    <div class="rotate-hint">Geser untuk memutar</div>
+                </div>
+                <div class="mt-3">
+                    <p class="font-semibold">Deskripsi:</p>
+                    <p class="mb-2">Balok adalah bangun ruang dengan 6 sisi berbentuk persegi panjang.</p>
+                    <div class="properties mt-2">
+                        <div><span class="font-semibold">Sisi:</span> <span class="highlight font-bold">6</span> sisi berbentuk persegi panjang</div>
+                        <div><span class="font-semibold">Rusuk:</span> <span class="highlight font-bold">12</span> rusuk</div>
+                        <div><span class="font-semibold">Titik Sudut:</span> <span class="highlight font-bold">8</span> titik sudut</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prisma / Prism -->
+            <div class="shape-card rounded-lg p-4 shadow-lg transition-all hover:shadow-xl" data-shape="prism">
+                <h2 class="text-xl font-bold mb-2 shape-title">Prisma</h2>
+                <div class="canvas-container relative">
+                    <div class="loading-indicator" id="prismLoading"></div>
+                    <canvas id="prismCanvas"></canvas>
+                    <div class="rotate-hint">Geser untuk memutar</div>
+                </div>
+                <div class="shape-options" id="prismOptions">
+                    <div class="mb-2 text-sm font-semibold">Pilih bentuk prisma:</div>
+                    <div class="flex flex-wrap gap-1 justify-center">
+                        <button class="btn-variant active" data-variant="3" data-parent="prism">Segitiga</button>
+                        <button class="btn-variant" data-variant="4" data-parent="prism">Segiempat</button>
+                        <button class="btn-variant" data-variant="5" data-parent="prism">Segilima</button>
+                        <button class="btn-variant" data-variant="6" data-parent="prism">Segienam</button>
+                        <button class="btn-variant" data-variant="7" data-parent="prism">Segitujuh</button>
+                        <button class="btn-variant" data-variant="8" data-parent="prism">Segidelapan</button>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <p class="font-semibold">Deskripsi:</p>
+                    <p class="mb-2">Prisma adalah bangun ruang dengan alas dan tutup yang sama berbentuk segi-n.</p>
+                    <div class="properties mt-2" id="prismProperties">
+                        <div><span class="font-semibold">Sisi:</span> <span class="highlight font-bold">5</span> sisi (2 alas + 3 sisi tegak)</div>
+                        <div><span class="font-semibold">Rusuk:</span> <span class="highlight font-bold">9</span> rusuk</div>
+                        <div><span class="font-semibold">Titik Sudut:</span> <span class="highlight font-bold">6</span> titik sudut</div>
+                        <p class="text-sm mt-1">(Prisma Segitiga)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Limas / Pyramid -->
+            <div class="shape-card rounded-lg p-4 shadow-lg transition-all hover:shadow-xl" data-shape="pyramid">
+                <h2 class="text-xl font-bold mb-2 shape-title">Limas</h2>
+                <div class="canvas-container relative">
+                    <div class="loading-indicator" id="pyramidLoading"></div>
+                    <canvas id="pyramidCanvas"></canvas>
+                    <div class="rotate-hint">Geser untuk memutar</div>
+                </div>
+                <div class="shape-options" id="pyramidOptions">
+                    <div class="mb-2 text-sm font-semibold">Pilih bentuk limas:</div>
+                    <div class="flex flex-wrap gap-1 justify-center">
+                        <button class="btn-variant" data-variant="3" data-parent="pyramid">Segitiga</button>
+                        <button class="btn-variant active" data-variant="4" data-parent="pyramid">Segiempat</button>
+                        <button class="btn-variant" data-variant="5" data-parent="pyramid">Segilima</button>
+                        <button class="btn-variant" data-variant="6" data-parent="pyramid">Segienam</button>
+                        <button class="btn-variant" data-variant="7" data-parent="pyramid">Segitujuh</button>
+                        <button class="btn-variant" data-variant="8" data-parent="pyramid">Segidelapan</button>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <p class="font-semibold">Deskripsi:</p>
+                    <p class="mb-2">Limas adalah bangun ruang dengan alas berbentuk segi-n dan sisi tegak berbentuk segitiga.</p>
+                    <div class="properties mt-2" id="pyramidProperties">
+                        <div><span class="font-semibold">Sisi:</span> <span class="highlight font-bold">5</span> sisi (1 alas + 4 sisi tegak)</div>
+                        <div><span class="font-semibold">Rusuk:</span> <span class="highlight font-bold">8</span> rusuk</div>
+                        <div><span class="font-semibold">Titik Sudut:</span> <span class="highlight font-bold">5</span> titik sudut</div>
+                        <p class="text-sm mt-1">(Limas Segiempat)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabung / Cylinder -->
+            <div class="shape-card rounded-lg p-4 shadow-lg transition-all hover:shadow-xl" data-shape="cylinder">
+                <h2 class="text-xl font-bold mb-2 shape-title">Tabung</h2>
+                <div class="canvas-container relative">
+                    <div class="loading-indicator" id="cylinderLoading"></div>
+                    <canvas id="cylinderCanvas"></canvas>
+                    <div class="rotate-hint">Geser untuk memutar</div>
+                </div>
+                <div class="mt-3">
+                    <p class="font-semibold">Deskripsi:</p>
+                    <p class="mb-2">Tabung adalah bangun ruang dengan alas dan tutup berbentuk lingkaran.</p>
+                    <div class="properties mt-2">
+                        <div><span class="font-semibold">Sisi:</span> <span class="highlight font-bold">3</span> sisi (2 alas lingkaran + 1 selimut)</div>
+                        <div><span class="font-semibold">Rusuk:</span> <span class="highlight font-bold">2</span> rusuk (lingkaran)</div>
+                        <div><span class="font-semibold">Titik Sudut:</span> <span class="highlight font-bold">0</span> titik sudut</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kerucut / Cone -->
+            <div class="shape-card rounded-lg p-4 shadow-lg transition-all hover:shadow-xl" data-shape="cone">
+                <h2 class="text-xl font-bold mb-2 shape-title">Kerucut</h2>
+                <div class="canvas-container relative">
+                    <div class="loading-indicator" id="coneLoading"></div>
+                    <canvas id="coneCanvas"></canvas>
+                    <div class="rotate-hint">Geser untuk memutar</div>
+                </div>
+                <div class="mt-3">
+                    <p class="font-semibold">Deskripsi:</p>
+                    <p class="mb-2">Kerucut adalah bangun ruang dengan alas berbentuk lingkaran dan memiliki titik puncak.</p>
+                    <div class="properties mt-2">
+                        <div><span class="font-semibold">Sisi:</span> <span class="highlight font-bold">2</span> sisi (1 alas lingkaran + 1 selimut)</div>
+                        <div><span class="font-semibold">Rusuk:</span> <span class="highlight font-bold">1</span> rusuk (lingkaran)</div>
+                        <div><span class="font-semibold">Titik Sudut:</span> <span class="highlight font-bold">1</span> titik sudut (puncak)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bola / Sphere -->
+            <div class="shape-card rounded-lg p-4 shadow-lg transition-all hover:shadow-xl" data-shape="sphere">
+                <h2 class="text-xl font-bold mb-2 shape-title">Bola</h2>
+                <div class="canvas-container relative">
+                    <div class="loading-indicator" id="sphereLoading"></div>
+                    <canvas id="sphereCanvas"></canvas>
+                    <div class="rotate-hint">Geser untuk memutar</div>
+                </div>
+                <div class="mt-3">
+                    <p class="font-semibold">Deskripsi:</p>
+                    <p class="mb-2">Bola adalah bangun ruang dengan permukaan melengkung yang semua titiknya berjarak sama dari titik pusat.</p>
+                    <div class="properties mt-2">
+                        <div><span class="font-semibold">Sisi:</span> <span class="highlight font-bold">1</span> sisi melengkung</div>
+                        <div><span class="font-semibold">Rusuk:</span> <span class="highlight font-bold">0</span> rusuk</div>
+                        <div><span class="font-semibold">Titik Sudut:</span> <span class="highlight font-bold">0</span> titik sudut</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kerucut Terpancung / Truncated Cone -->
+            <div class="shape-card rounded-lg p-4 shadow-lg transition-all hover:shadow-xl" data-shape="truncatedCone">
+                <h2 class="text-xl font-bold mb-2 shape-title">Kerucut Terpancung</h2>
+                <div class="canvas-container relative">
+                    <div class="loading-indicator" id="truncatedConeLoading"></div>
+                    <canvas id="truncatedConeCanvas"></canvas>
+                    <div class="rotate-hint">Geser untuk memutar</div>
+                </div>
+                <div class="mt-3">
+                    <p class="font-semibold">Deskripsi:</p>
+                    <p class="mb-2">Kerucut terpancung adalah kerucut dengan bagian ujung yang terpotong sejajar dengan alas.</p>
+                    <div class="properties mt-2">
+                        <div><span class="font-semibold">Sisi:</span> <span class="highlight font-bold">3</span> sisi (2 alas lingkaran + 1 selimut)</div>
+                        <div><span class="font-semibold">Rusuk:</span> <span class="highlight font-bold">2</span> rusuk (lingkaran)</div>
+                        <div><span class="font-semibold">Titik Sudut:</span> <span class="highlight font-bold">0</span> titik sudut</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Oktahedron / Octahedron -->
+            <div class="shape-card rounded-lg p-4 shadow-lg transition-all hover:shadow-xl" data-shape="octahedron">
+                <h2 class="text-xl font-bold mb-2 shape-title">Oktahedron</h2>
+                <div class="canvas-container relative">
+                    <div class="loading-indicator" id="octahedronLoading"></div>
+                    <canvas id="octahedronCanvas"></canvas>
+                    <div class="rotate-hint">Geser untuk memutar</div>
+                </div>
+                <div class="mt-3">
+                    <p class="font-semibold">Deskripsi:</p>
+                    <p class="mb-2">Oktahedron adalah bangun ruang dengan 8 sisi berbentuk segitiga sama sisi.</p>
+                    <div class="properties mt-2">
+                        <div><span class="font-semibold">Sisi:</span> <span class="highlight font-bold">8</span> sisi berbentuk segitiga</div>
+                        <div><span class="font-semibold">Rusuk:</span> <span class="highlight font-bold">12</span> rusuk</div>
+                        <div><span class="font-semibold">Titik Sudut:</span> <span class="highlight font-bold">6</span> titik sudut</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize all 3D shape visualizations with lazy loading
+        document.addEventListener('DOMContentLoaded', function() {
+            // Track which shapes have been initialized
+            const initializedShapes = new Set();
+            
+            // Track actively rendering shapes and their canvases
+            const activeShapes = new Map();
+            
+            // Store all shape renderer data
+            const shapes = {};
+            
+            // Flag to track if page is currently being scrolled
+            let isScrolling = false;
+            
+            // Device detection with better performance checks
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isLowPerformance = isMobile && window.devicePixelRatio > 2;
+            
+            // Color settings - will adjust based on color scheme
+            const updateColors = () => {
+                const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                return {
+                    wireframeColor: isDarkMode ? 0x6E6EFF : 0x5D5CDE,
+                    meshColor: isDarkMode ? 0x9797FF : 0x8484FF,
+                    gridColor: isDarkMode ? 0x444444 : 0xCCCCCC,
+                    backgroundColor: isDarkMode ? 0x181818 : 0xF8F8FF,
+                    vertexColor: 0xFF5555
+                };
+            };
+            
+            let colors = updateColors();
+            
+            // Performance settings based on device capability
+            const perfSettings = {
+                segments: isLowPerformance ? 12 : (isMobile ? 16 : 32),
+                vertexSegments: isLowPerformance ? 6 : (isMobile ? 8 : 16),
+                targetFPS: isLowPerformance ? 24 : (isMobile ? 30 : 60),
+                autoRotateSpeed: isLowPerformance ? 1 : (isMobile ? 1.5 : 2),
+                enableDamping: !isLowPerformance,
+                dampingFactor: isLowPerformance ? 0.5 : 0.25,
+                precision: isLowPerformance ? 'lowp' : (isMobile ? 'mediump' : 'highp')
+            };
+            
+            // Reusable shared geometries to improve performance
+            const sharedGeometries = {
+                sphere: null,
+                vertex: null
+            };
+            
+            // Visibility observer with threshold to check for partial visibility
+            const visibilityObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const shapeType = entry.target.getAttribute('data-shape');
+                    
+                    if (entry.isIntersecting) {
+                        // Initialize shape if not already done
+                        if (!initializedShapes.has(shapeType)) {
+                            // Slight delay to avoid layout thrashing during scrolling
+                            setTimeout(() => {
+                                if (!initializedShapes.has(shapeType)) {
+                                    initializeShape(shapeType);
+                                }
+                            }, 50);
+                        }
+                        
+                        // Add to active shapes for rendering
+                        const canvas = document.getElementById(`${shapeType}Canvas`);
+                        if (canvas) {
+                            activeShapes.set(shapeType, canvas);
+                        }
+                    } else {
+                        // Remove from active rendering but don't destroy
+                        activeShapes.delete(shapeType);
+                    }
+                });
+                
+                // Start or stop animation based on active shapes
+                if (activeShapes.size > 0) {
+                    startAnimation();
+                } else {
+                    stopAnimation();
+                }
+            }, { threshold: 0.1 });
+            
+            // Observe all shape cards for visibility
+            document.querySelectorAll('.shape-card').forEach(card => {
+                visibilityObserver.observe(card);
+            });
+            
+            // Initialize shared geometries
+            function initializeSharedGeometries() {
+                // Vertex sphere geometry (used for points)
+                sharedGeometries.vertex = new THREE.SphereGeometry(
+                    0.08, 
+                    perfSettings.vertexSegments, 
+                    perfSettings.vertexSegments
+                );
+                
+                // Cache disposal functions for later cleanup
+                sharedGeometries.dispose = () => {
+                    if (sharedGeometries.vertex) {
+                        sharedGeometries.vertex.dispose();
+                    }
+                    if (sharedGeometries.sphere) {
+                        sharedGeometries.sphere.dispose();
+                    }
+                };
+            }
+            
+            // Initialize shared geometries early
+            initializeSharedGeometries();
+            
+            // Function to get optimal canvas dimensions based on container
+            function getCanvasDimensions(container) {
+                if (!container) return { width: 250, height: 200 };
+                
+                const rect = container.getBoundingClientRect();
+                
+                return {
+                    width: rect.width,
+                    height: rect.height
+                };
+            }
+            
+            // Create scene setup for each shape with better error handling
+            function createScene(canvasId) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return null;
+                
+                const container = canvas.closest('.canvas-container');
+                const { width, height } = getCanvasDimensions(container);
+                
+                try {
+                    // Create renderer first to detect WebGL support
+                    const renderer = new THREE.WebGLRenderer({ 
+                        canvas: canvas,
+                        antialias: !isLowPerformance,
+                        powerPreference: 'high-performance',
+                        precision: perfSettings.precision,
+                        alpha: false
+                    });
+                    
+                    // Handle WebGL version
+                    if (isMobile) {
+                        renderer.outputEncoding = THREE.LinearEncoding; // Use simpler encoding on mobile
+                    }
+                    
+                    // Create scene with simpler background
+                    const scene = new THREE.Scene();
+                    scene.background = new THREE.Color(colors.backgroundColor);
+                    
+                    // Create camera with appropriate settings
+                    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+                    camera.position.z = 5;
+                    
+                    // Set renderer size with pixel ratio limit
+                    const pixelRatio = isLowPerformance ? 1 : (isMobile ? Math.min(window.devicePixelRatio, 2) : window.devicePixelRatio);
+                    renderer.setPixelRatio(pixelRatio);
+                    renderer.setSize(width, height, false); // false preserves CSS sizing
+                    
+                    // Configure OrbitControls with optimized settings
+                    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+                    controls.enableDamping = perfSettings.enableDamping;
+                    controls.dampingFactor = perfSettings.dampingFactor;
+                    controls.enableZoom = true;
+                    controls.zoomSpeed = 0.8;
+                    controls.rotateSpeed = 0.8;
+                    controls.panSpeed = 0.5;
+                    controls.touches = {
+                        ONE: THREE.TOUCH.ROTATE,
+                        TWO: THREE.TOUCH.DOLLY_PAN
+                    };
+                    controls.autoRotate = true;
+                    controls.autoRotateSpeed = perfSettings.autoRotateSpeed;
+                    
+                    // Add basic lighting - simplified for performance
+                    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                    scene.add(ambientLight);
+                    
+                    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                    directionalLight.position.set(1, 1, 1);
+                    scene.add(directionalLight);
+                    
+                    // Mark this scene as initialized
+                    return { scene, camera, renderer, controls };
+                } catch (error) {
+                    console.error(`Error creating Three.js scene for ${canvasId}:`, error);
+                    showError(canvasId, "Tidak dapat memuat bangun 3D");
+                    return null;
+                }
+            }
+            
+            // Show error message on canvas
+            function showError(canvasId, message) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                
+                const container = canvas.closest('.canvas-container');
+                if (!container) return;
+                
+                // Remove loading indicator
+                const loadingId = canvasId.replace('Canvas', 'Loading');
+                const loadingElement = document.getElementById(loadingId);
+                if (loadingElement) {
+                    loadingElement.remove();
+                }
+                
+                // Create error message
+                const errorElement = document.createElement('div');
+                errorElement.className = 'error-message';
+                errorElement.textContent = message;
+                container.appendChild(errorElement);
+            }
+            
+            // Hide loading indicator
+            function hideLoading(shapeType) {
+                const loadingId = `${shapeType}Loading`;
+                const loadingElement = document.getElementById(loadingId);
+                if (loadingElement) {
+                    loadingElement.style.display = 'none';
+                }
+            }
+            
+            // Utility function to add vertex spheres - optimized for mobile
+            function addVertexSpheres(scene, positions) {
+                const sphereMaterial = new THREE.MeshBasicMaterial({ color: colors.vertexColor });
+                
+                // Use the shared geometry for better performance
+                positions.forEach(position => {
+                    const sphere = new THREE.Mesh(sharedGeometries.vertex, sphereMaterial);
+                    sphere.position.copy(position);
+                    scene.add(sphere);
+                });
+            }
+            
+            // Main function to initialize a specific shape
+            function initializeShape(shapeType) {
+                if (initializedShapes.has(shapeType)) return;
+                
+                try {
+                    switch(shapeType) {
+                        case 'cube':
+                            createCube();
+                            break;
+                        case 'cuboid':
+                            createCuboid();
+                            break;
+                        case 'prism':
+                            createPrism(3); // Default: Triangular Prism
+                            break;
+                        case 'pyramid':
+                            createPyramid(4); // Default: Square Pyramid
+                            break;
+                        case 'cylinder':
+                            createCylinder();
+                            break;
+                        case 'cone':
+                            createCone();
+                            break;
+                        case 'sphere':
+                            createSphere();
+                            break;
+                        case 'truncatedCone':
+                            createTruncatedCone();
+                            break;
+                        case 'octahedron':
+                            createOctahedron();
+                            break;
+                    }
+                    
+                    // Add to initialized shapes
+                    initializedShapes.add(shapeType);
+                    
+                    // Hide loading indicator
+                    hideLoading(shapeType);
+                    
+                    // Add to active shapes for rendering
+                    const canvas = document.getElementById(`${shapeType}Canvas`);
+                    if (canvas) {
+                        activeShapes.set(shapeType, canvas);
+                    }
+                    
+                    // Ensure animation is running if not already
+                    startAnimation();
+                } catch (error) {
+                    console.error(`Error initializing shape ${shapeType}:`, error);
+                    showError(`${shapeType}Canvas`, "Gagal memuat bangun 3D");
+                }
+            }
+            
+            // Create Cube with optimized geometry
+            function createCube() {
+                const setup = createScene('cubeCanvas');
+                if (!setup) return;
+                
+                const { scene, camera, renderer, controls } = setup;
+                
+                // Create cube geometry
+                const geometry = new THREE.BoxGeometry(2, 2, 2);
+                const wireframe = new THREE.EdgesGeometry(geometry);
+                const wireframeMaterial = new THREE.LineBasicMaterial({ color: colors.wireframeColor, linewidth: 2 });
+                const wireframeObj = new THREE.LineSegments(wireframe, wireframeMaterial);
+                scene.add(wireframeObj);
+                
+                // Create cube mesh with transparent material
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: colors.meshColor, 
+                    transparent: true, 
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+                const cube = new THREE.Mesh(geometry, material);
+                scene.add(cube);
+                
+                // Add dots for vertices
+                const vertices = [
+                    new THREE.Vector3(1, 1, 1),
+                    new THREE.Vector3(1, 1, -1),
+                    new THREE.Vector3(1, -1, 1),
+                    new THREE.Vector3(1, -1, -1),
+                    new THREE.Vector3(-1, 1, 1),
+                    new THREE.Vector3(-1, 1, -1),
+                    new THREE.Vector3(-1, -1, 1),
+                    new THREE.Vector3(-1, -1, -1)
+                ];
+                
+                addVertexSpheres(scene, vertices);
+                
+                camera.position.set(3, 3, 3);
+                controls.update();
+                
+                // Store for animation and cleanup
+                shapes.cube = { 
+                    scene, 
+                    camera, 
+                    renderer, 
+                    controls,
+                    geometries: [geometry, wireframe],
+                    materials: [material, wireframeMaterial],
+                    needsRender: true
+                };
+            }
+            
+            // Create Cuboid (Balok)
+            function createCuboid() {
+                const setup = createScene('cuboidCanvas');
+                if (!setup) return;
+                
+                const { scene, camera, renderer, controls } = setup;
+                
+                // Create cuboid geometry (rectangular prism)
+                const geometry = new THREE.BoxGeometry(3, 1.5, 2);
+                const wireframe = new THREE.EdgesGeometry(geometry);
+                const wireframeMaterial = new THREE.LineBasicMaterial({ color: colors.wireframeColor, linewidth: 2 });
+                const wireframeObj = new THREE.LineSegments(wireframe, wireframeMaterial);
+                scene.add(wireframeObj);
+                
+                // Create cuboid mesh with transparent material
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: colors.meshColor, 
+                    transparent: true, 
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+                const cuboid = new THREE.Mesh(geometry, material);
+                scene.add(cuboid);
+                
+                // Add dots for vertices
+                const vertices = [
+                    new THREE.Vector3(1.5, 0.75, 1),
+                    new THREE.Vector3(1.5, 0.75, -1),
+                    new THREE.Vector3(1.5, -0.75, 1),
+                    new THREE.Vector3(1.5, -0.75, -1),
+                    new THREE.Vector3(-1.5, 0.75, 1),
+                    new THREE.Vector3(-1.5, 0.75, -1),
+                    new THREE.Vector3(-1.5, -0.75, 1),
+                    new THREE.Vector3(-1.5, -0.75, -1)
+                ];
+                
+                addVertexSpheres(scene, vertices);
+                
+                camera.position.set(4, 3, 4);
+                controls.update();
+                
+                // Store for animation and cleanup
+                shapes.cuboid = { 
+                    scene, 
+                    camera, 
+                    renderer, 
+                    controls,
+                    geometries: [geometry, wireframe],
+                    materials: [material, wireframeMaterial],
+                    needsRender: true
+                };
+            }
+            
+            // Create Prism with variable number of sides - optimized
+            function createPrism(sides = 3) {
+                // Use existing setup if possible, or create new one
+                let shape = shapes.prism;
+                if (!shape) {
+                    const setup = createScene('prismCanvas');
+                    if (!setup) return;
+                    shape = setup;
+                    shapes.prism = shape;
+                }
+                
+                const { scene, camera, renderer, controls } = shape;
+                
+                // Clear existing objects except lights
+                const lightsToKeep = [];
+                scene.traverse(object => {
+                    if (object instanceof THREE.Light) {
+                        lightsToKeep.push(object);
+                    }
+                });
+                
+                while(scene.children.length > 0) { 
+                    scene.remove(scene.children[0]); 
+                }
+                
+                // Add lights back
+                lightsToKeep.forEach(light => {
+                    scene.add(light);
+                });
+                
+                // If no lights were found, add new ones
+                if (lightsToKeep.length === 0) {
+                    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                    scene.add(ambientLight);
+                    
+                    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                    directionalLight.position.set(1, 1, 1);
+                    scene.add(directionalLight);
+                }
+                
+                // Create prism with specified number of sides
+                const height = 3;
+                const radius = 1.5;
+                
+                // Generate the bottom and top vertices of the prism
+                const bottomVertices = [];
+                const topVertices = [];
+                
+                // Create prism vertices
+                for (let i = 0; i < sides; i++) {
+                    const angle = (2 * Math.PI * i / sides) + (Math.PI / sides); // Offset for better orientation
+                    const x = radius * Math.cos(angle);
+                    const z = radius * Math.sin(angle);
+                    
+                    bottomVertices.push(new THREE.Vector3(x, -height/2, z));
+                    topVertices.push(new THREE.Vector3(x, height/2, z));
+                }
+                
+                // Create prism geometry from vertices
+                const geometry = new THREE.BufferGeometry();
+                const vertices = [];
+                
+                // Create the lateral faces (side rectangles)
+                for (let i = 0; i < sides; i++) {
+                    const nextI = (i + 1) % sides;
+                    
+                    // First triangle of the side face
+                    vertices.push(
+                        bottomVertices[i].x, bottomVertices[i].y, bottomVertices[i].z,
+                        bottomVertices[nextI].x, bottomVertices[nextI].y, bottomVertices[nextI].z,
+                        topVertices[i].x, topVertices[i].y, topVertices[i].z
+                    );
+                    
+                    // Second triangle of the side face
+                    vertices.push(
+                        bottomVertices[nextI].x, bottomVertices[nextI].y, bottomVertices[nextI].z,
+                        topVertices[nextI].x, topVertices[nextI].y, topVertices[nextI].z,
+                        topVertices[i].x, topVertices[i].y, topVertices[i].z
+                    );
+                }
+                
+                // Create top face (triangular fan)
+                for (let i = 1; i < sides - 1; i++) {
+                    vertices.push(
+                        topVertices[0].x, topVertices[0].y, topVertices[0].z,
+                        topVertices[i].x, topVertices[i].y, topVertices[i].z,
+                        topVertices[i+1].x, topVertices[i+1].y, topVertices[i+1].z
+                    );
+                }
+                
+                // Create bottom face (triangular fan)
+                for (let i = 1; i < sides - 1; i++) {
+                    vertices.push(
+                        bottomVertices[0].x, bottomVertices[0].y, bottomVertices[0].z,
+                        bottomVertices[i+1].x, bottomVertices[i+1].y, bottomVertices[i+1].z,
+                        bottomVertices[i].x, bottomVertices[i].y, bottomVertices[i].z
+                    );
+                }
+                
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                geometry.computeVertexNormals();
+                
+                // Create prism mesh
+                const material = new THREE.MeshPhongMaterial({
+                    color: colors.meshColor,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+                
+                const prism = new THREE.Mesh(geometry, material);
+                scene.add(prism);
+                
+                // Create wireframe
+                const wireframeGeometry = new THREE.EdgesGeometry(geometry);
+                const wireframeMaterial = new THREE.LineBasicMaterial({ color: colors.wireframeColor });
+                const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
+                scene.add(wireframe);
+                
+                // Add vertex spheres for all vertices
+                const allVertices = [...bottomVertices, ...topVertices];
+                addVertexSpheres(scene, allVertices);
+                
+                camera.position.set(3, 3, 3);
+                controls.update();
+                
+                // Update shape info
+                const prismProperties = document.getElementById('prismProperties');
+                prismProperties.innerHTML = `
+                    <div><span class="font-semibold">Sisi:</span> <span class="highlight font-bold">${sides + 2}</span> sisi (2 alas + ${sides} sisi tegak)</div>
+                    <div><span class="font-semibold">Rusuk:</span> <span class="highlight font-bold">${sides * 3}</span> rusuk</div>
+                    <div><span class="font-semibold">Titik Sudut:</span> <span class="highlight font-bold">${sides * 2}</span> titik sudut</div>
+                    <p class="text-sm mt-1">(Prisma Segi${sides})</p>
+                `;
+                
+                // Store any new geometries and materials for cleanup
+                shape.geometries = [geometry, wireframeGeometry];
+                shape.materials = [material, wireframeMaterial];
+                shape.needsRender = true;
+            }
+            
+            // Create Pyramid with variable number of sides
+            function createPyramid(sides = 4) {
+                // Use existing setup if possible, or create new one
+                let shape = shapes.pyramid;
+                if (!shape) {
+                    const setup = createScene('pyramidCanvas');
+                    if (!setup) return;
+                    shape = setup;
+                    shapes.pyramid = shape;
+                }
+                
+                const { scene, camera, renderer, controls } = shape;
+                
+                // Clear existing objects except lights
+                const lightsToKeep = [];
+                scene.traverse(object => {
+                    if (object instanceof THREE.Light) {
+                        lightsToKeep.push(object);
+                    }
+                });
+                
+                while(scene.children.length > 0) { 
+                    scene.remove(scene.children[0]); 
+                }
+                
+                // Add lights back
+                lightsToKeep.forEach(light => {
+                    scene.add(light);
+                });
+                
+                // If no lights were found, add new ones
+                if (lightsToKeep.length === 0) {
+                    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                    scene.add(ambientLight);
+                    
+                    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                    directionalLight.position.set(1, 1, 1);
+                    scene.add(directionalLight);
+                }
+                
+                // Create pyramid with specified number of sides
+                const height = 3;
+                const radius = 1.5;
+                
+                // Define apex and base vertices
+                const apex = new THREE.Vector3(0, height/2, 0);
+                const baseVertices = [];
+                
+                // Create base vertices with correct positioning
+                for (let i = 0; i < sides; i++) {
+                    const angle = (2 * Math.PI * i / sides) + (Math.PI / sides); // Offset for better orientation
+                    const x = radius * Math.cos(angle);
+                    const z = radius * Math.sin(angle);
+                    baseVertices.push(new THREE.Vector3(x, -height/2, z));
+                }
+                
+                // Create geometry from vertices
+                const geometry = new THREE.BufferGeometry();
+                const vertices = [];
+                
+                // Create the triangular faces from apex to each edge of the base
+                for (let i = 0; i < sides; i++) {
+                    const nextI = (i + 1) % sides;
+                    
+                    // Side triangular face
+                    vertices.push(
+                        apex.x, apex.y, apex.z,
+                        baseVertices[i].x, baseVertices[i].y, baseVertices[i].z,
+                        baseVertices[nextI].x, baseVertices[nextI].y, baseVertices[nextI].z
+                    );
+                }
+                
+                // Create the base face (triangular fan)
+                for (let i = 1; i < sides - 1; i++) {
+                    vertices.push(
+                        baseVertices[0].x, baseVertices[0].y, baseVertices[0].z,
+                        baseVertices[i+1].x, baseVertices[i+1].y, baseVertices[i+1].z,
+                        baseVertices[i].x, baseVertices[i].y, baseVertices[i].z
+                    );
+                }
+                
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                geometry.computeVertexNormals();
+                
+                // Create pyramid mesh
+                const material = new THREE.MeshPhongMaterial({
+                    color: colors.meshColor,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+                
+                const pyramid = new THREE.Mesh(geometry, material);
+                scene.add(pyramid);
+                
+                // Create wireframe
+                const wireframeGeometry = new THREE.EdgesGeometry(geometry);
+                const wireframeMaterial = new THREE.LineBasicMaterial({ color: colors.wireframeColor });
+                const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
+                scene.add(wireframe);
+                
+                // Add vertex spheres
+                const allVertices = [apex, ...baseVertices];
+                addVertexSpheres(scene, allVertices);
+                
+                camera.position.set(3, 3, 3);
+                controls.update();
+                
+                // Update shape info
+                const pyramidProperties = document.getElementById('pyramidProperties');
+                pyramidProperties.innerHTML = `
+                    <div><span class="font-semibold">Sisi:</span> <span class="highlight font-bold">${sides + 1}</span> sisi (1 alas + ${sides} sisi tegak)</div>
+                    <div><span class="font-semibold">Rusuk:</span> <span class="highlight font-bold">${sides * 2}</span> rusuk</div>
+                    <div><span class="font-semibold">Titik Sudut:</span> <span class="highlight font-bold">${sides + 1}</span> titik sudut</div>
+                    <p class="text-sm mt-1">(Limas Segi${sides})</p>
+                `;
+                
+                // Store any new geometries and materials for cleanup
+                shape.geometries = [geometry, wireframeGeometry];
+                shape.materials = [material, wireframeMaterial];
+                shape.needsRender = true;
+            }
+            
+            // Create Cylinder (Tabung)
+            function createCylinder() {
+                const setup = createScene('cylinderCanvas');
+                if (!setup) return;
+                
+                const { scene, camera, renderer, controls } = setup;
+                
+                // Create cylinder geometry
+                const radialSegments = perfSettings.segments;
+                const geometry = new THREE.CylinderGeometry(1, 1, 3, radialSegments);
+                
+                // Create cylinder mesh with transparent material
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: colors.meshColor, 
+                    transparent: true, 
+                    opacity: 0.3,
+                    side: THREE.DoubleSide 
+                });
+                const cylinder = new THREE.Mesh(geometry, material);
+                scene.add(cylinder);
+                
+                // Create cylinder wireframe
+                const edgesGeometry = new THREE.EdgesGeometry(geometry);
+                const wireframeMaterial = new THREE.LineBasicMaterial({ color: colors.wireframeColor });
+                const wireframe = new THREE.LineSegments(
+                    edgesGeometry,
+                    wireframeMaterial
+                );
+                scene.add(wireframe);
+                
+                // Create circles for the top and bottom edges with fewer segments
+                const circleGeometry = new THREE.CircleGeometry(1, radialSegments);
+                const circleMaterial = new THREE.MeshBasicMaterial({ 
+                    color: colors.wireframeColor,
+                    side: THREE.DoubleSide,
+                    wireframe: true
+                });
+                
+                const topCircle = new THREE.Mesh(circleGeometry, circleMaterial);
+                topCircle.position.y = 1.5;
+                topCircle.rotation.x = Math.PI / 2;
+                scene.add(topCircle);
+                
+                const bottomCircle = new THREE.Mesh(circleGeometry, circleMaterial);
+                bottomCircle.position.y = -1.5;
+                bottomCircle.rotation.x = Math.PI / 2;
+                scene.add(bottomCircle);
+                
+                camera.position.set(3, 3, 3);
+                controls.update();
+                
+                // Store for animation and cleanup
+                shapes.cylinder = { 
+                    scene, 
+                    camera, 
+                    renderer, 
+                    controls,
+                    geometries: [geometry, edgesGeometry, circleGeometry],
+                    materials: [material, wireframeMaterial, circleMaterial],
+                    needsRender: true
+                };
+            }
+            
+            // Create Cone (Kerucut)
+            function createCone() {
+                const setup = createScene('coneCanvas');
+                if (!setup) return;
+                
+                const { scene, camera, renderer, controls } = setup;
+                
+                // Create cone geometry
+                const radialSegments = perfSettings.segments;
+                const geometry = new THREE.ConeGeometry(1.3, 3, radialSegments);
+                
+                // Create cone mesh with transparent material
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: colors.meshColor, 
+                    transparent: true, 
+                    opacity: 0.3,
+                    side: THREE.DoubleSide 
+                });
+                const cone = new THREE.Mesh(geometry, material);
+                scene.add(cone);
+                
+                // Create cone wireframe
+                const edgesGeometry = new THREE.EdgesGeometry(geometry);
+                const wireframeMaterial = new THREE.LineBasicMaterial({ color: colors.wireframeColor });
+                const wireframe = new THREE.LineSegments(
+                    edgesGeometry,
+                    wireframeMaterial
+                );
+                scene.add(wireframe);
+                
+                // Create circle for the bottom
+                const circleGeometry = new THREE.CircleGeometry(1.3, radialSegments);
+                const circleMaterial = new THREE.MeshBasicMaterial({ 
+                    color: colors.wireframeColor,
+                    side: THREE.DoubleSide,
+                    wireframe: true
+                });
+                
+                const circle = new THREE.Mesh(circleGeometry, circleMaterial);
+                circle.position.y = -1.5;
+                circle.rotation.x = Math.PI / 2;
+                scene.add(circle);
+                
+                // Add dot for the tip vertex
+                const sphereMaterial = new THREE.MeshBasicMaterial({ color: colors.vertexColor });
+                const tipSphere = new THREE.Mesh(sharedGeometries.vertex, sphereMaterial);
+                tipSphere.position.y = 1.5;
+                scene.add(tipSphere);
+                
+                camera.position.set(3, 3, 3);
+                controls.update();
+                
+                // Store for animation and cleanup
+                shapes.cone = { 
+                    scene, 
+                    camera, 
+                    renderer, 
+                    controls,
+                    geometries: [geometry, edgesGeometry, circleGeometry],
+                    materials: [material, wireframeMaterial, circleMaterial, sphereMaterial],
+                    needsRender: true
+                };
+            }
+            
+            // Create Sphere (Bola)
+            function createSphere() {
+                const setup = createScene('sphereCanvas');
+                if (!setup) return;
+                
+                const { scene, camera, renderer, controls } = setup;
+                
+                // Create sphere geometry
+                const segments = perfSettings.segments;
+                const geometry = new THREE.SphereGeometry(1.5, segments, segments);
+                
+                // Create sphere mesh with transparent material
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: colors.meshColor, 
+                    transparent: true, 
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                });
+                const sphere = new THREE.Mesh(geometry, material);
+                scene.add(sphere);
+                
+                // Create wireframe sphere
+                const wireframeMaterial = new THREE.MeshBasicMaterial({
+                    color: colors.wireframeColor,
+                    wireframe: true
+                });
+                const wireframeSphere = new THREE.Mesh(geometry, wireframeMaterial);
+                scene.add(wireframeSphere);
+                
+                // Add helper circles to show the sphere's cross-sections
+                const circleGeometry = new THREE.CircleGeometry(1.5, segments);
+                const circleMaterial = new THREE.MeshBasicMaterial({ 
+                    color: colors.wireframeColor,
+                    transparent: true,
+                    opacity: 0.5,
+                    side: THREE.DoubleSide
+                });
+                
+                const circleXY = new THREE.Mesh(circleGeometry, circleMaterial);
+                scene.add(circleXY);
+                
+                const circleXZ = new THREE.Mesh(circleGeometry, circleMaterial);
+                circleXZ.rotation.x = Math.PI / 2;
+                scene.add(circleXZ);
+                
+                const circleYZ = new THREE.Mesh(circleGeometry, circleMaterial);
+                circleYZ.rotation.y = Math.PI / 2;
+                scene.add(circleYZ);
+                
+                camera.position.set(3, 3, 3);
+                controls.update();
+                
+                // Store for animation and cleanup
+                shapes.sphere = { 
+                    scene, 
+                    camera, 
+                    renderer, 
+                    controls,
+                    geometries: [geometry, circleGeometry],
+                    materials: [material, wireframeMaterial, circleMaterial],
+                    needsRender: true
+                };
+            }
+            
+            // Create Truncated Cone (Kerucut Terpancung)
+            function createTruncatedCone() {
+                const setup = createScene('truncatedConeCanvas');
+                if (!setup) return;
+                
+                const { scene, camera, renderer, controls } = setup;
+                
+                // Create truncated cone geometry
+                const radialSegments = perfSettings.segments;
+                const geometry = new THREE.CylinderGeometry(0.8, 1.5, 3, radialSegments);
+                
+                // Create truncated cone mesh with transparent material
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: colors.meshColor, 
+                    transparent: true, 
+                    opacity: 0.3,
+                    side: THREE.DoubleSide 
+                });
+                const truncatedCone = new THREE.Mesh(geometry, material);
+                scene.add(truncatedCone);
+                
+                // Create truncated cone wireframe
+                const edgesGeometry = new THREE.EdgesGeometry(geometry);
+                const wireframeMaterial = new THREE.LineBasicMaterial({ color: colors.wireframeColor });
+                const wireframe = new THREE.LineSegments(
+                    edgesGeometry,
+                    wireframeMaterial
+                );
+                scene.add(wireframe);
+                
+                // Create circles for the top and bottom
+                const topCircleGeometry = new THREE.CircleGeometry(0.8, radialSegments);
+                const bottomCircleGeometry = new THREE.CircleGeometry(1.5, radialSegments);
+                
+                const circleMaterial = new THREE.MeshBasicMaterial({ 
+                    color: colors.wireframeColor,
+                    side: THREE.DoubleSide,
+                    wireframe: true
+                });
+                
+                const topCircle = new THREE.Mesh(topCircleGeometry, circleMaterial);
+                topCircle.position.y = 1.5;
+                topCircle.rotation.x = Math.PI / 2;
+                scene.add(topCircle);
+                
+                const bottomCircle = new THREE.Mesh(bottomCircleGeometry, circleMaterial);
+                bottomCircle.position.y = -1.5;
+                bottomCircle.rotation.x = Math.PI / 2;
+                scene.add(bottomCircle);
+                
+                camera.position.set(3, 3, 3);
+                controls.update();
+                
+                // Store for animation and cleanup
+                shapes.truncatedCone = { 
+                    scene, 
+                    camera, 
+                    renderer, 
+                    controls,
+                    geometries: [geometry, edgesGeometry, topCircleGeometry, bottomCircleGeometry],
+                    materials: [material, wireframeMaterial, circleMaterial],
+                    needsRender: true
+                };
+            }
+            
+            // Create Octahedron
+            function createOctahedron() {
+                const setup = createScene('octahedronCanvas');
+                if (!setup) return;
+                
+                const { scene, camera, renderer, controls } = setup;
+                
+                // Create octahedron geometry
+                const geometry = new THREE.OctahedronGeometry(1.5);
+                
+                // Create octahedron mesh with transparent material
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: colors.meshColor, 
+                    transparent: true, 
+                    opacity: 0.3,
+                    side: THREE.DoubleSide 
+                });
+                const octahedron = new THREE.Mesh(geometry, material);
+                scene.add(octahedron);
+                
+                // Create octahedron wireframe
+                const edgesGeometry = new THREE.EdgesGeometry(geometry);
+                const wireframeMaterial = new THREE.LineBasicMaterial({ color: colors.wireframeColor });
+                const wireframe = new THREE.LineSegments(
+                    edgesGeometry,
+                    wireframeMaterial
+                );
+                scene.add(wireframe);
+                
+                // Add dots for vertices
+                const vertices = [
+                    new THREE.Vector3(0, 1.5, 0),    // top
+                    new THREE.Vector3(0, -1.5, 0),   // bottom
+                    new THREE.Vector3(1.5, 0, 0),    // right
+                    new THREE.Vector3(-1.5, 0, 0),   // left
+                    new THREE.Vector3(0, 0, 1.5),    // front
+                    new THREE.Vector3(0, 0, -1.5)    // back
+                ];
+                
+                addVertexSpheres(scene, vertices);
+                
+                camera.position.set(3, 3, 3);
+                controls.update();
+                
+                // Store for animation and cleanup
+                shapes.octahedron = { 
+                    scene, 
+                    camera, 
+                    renderer, 
+                    controls,
+                    geometries: [geometry, edgesGeometry],
+                    materials: [material, wireframeMaterial],
+                    needsRender: true
+                };
+            }
+            
+            // Animation control
+            let animationFrameId = null;
+            let lastTime = 0;
+            const frameInterval = 1000 / perfSettings.targetFPS;
+            
+            // Optimized animation loop with frame limiting
+            function animate(currentTime) {
+                animationFrameId = requestAnimationFrame(animate);
+                
+                // Skip frames to maintain target FPS
+                const deltaTime = currentTime - lastTime;
+                if (deltaTime < frameInterval) return;
+                
+                // Adjust time tracking
+                lastTime = currentTime - (deltaTime % frameInterval);
+                
+                // If scrolling, skip rendering to improve scroll performance
+                if (isScrolling) return;
+                
+                // Update and render only visible shapes
+                activeShapes.forEach((canvas, shapeType) => {
+                    const shape = shapes[shapeType];
+                    if (!shape || !shape.scene || !shape.camera || !shape.controls || !shape.renderer) return;
+                    
+                    // If shape wasn't marked for rendering and controls damping is disabled, skip
+                    if (!shape.needsRender && !perfSettings.enableDamping && !shape.controls.autoRotate) return;
+                    
+                    // Check if controls need updating (damping or rotation)
+                    if (shape.controls.autoRotate || perfSettings.enableDamping) {
+                        shape.controls.update();
+                    }
+                    
+                    // Only render if needed
+                    shape.renderer.render(shape.scene, shape.camera);
+                    
+                    // Reset render flag
+                    shape.needsRender = false;
+                });
+            }
+            
+            // Start animation
+            function startAnimation() {
+                if (animationFrameId === null) {
+                    lastTime = 0;
+                    animationFrameId = requestAnimationFrame(animate);
+                }
+            }
+            
+            // Stop animation
+            function stopAnimation() {
+                if (animationFrameId !== null) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+            }
+            
+            // Handle scroll events to pause rendering during scrolling
+            let scrollTimeout;
+            window.addEventListener('scroll', function() {
+                isScrolling = true;
+                clearTimeout(scrollTimeout);
+                
+                // Resume rendering after scrolling stops
+                scrollTimeout = setTimeout(function() {
+                    isScrolling = false;
+                    
+                    // Mark all active shapes for rendering
+                    activeShapes.forEach((canvas, shapeType) => {
+                        const shape = shapes[shapeType];
+                        if (shape) shape.needsRender = true;
+                    });
+                }, 100);
+            }, { passive: true });
+            
+            // Make shape cards interactive
+            const shapeCards = document.querySelectorAll('.shape-card');
+            
+            shapeCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const shapeType = this.getAttribute('data-shape');
+                    
+                    // If the shape hasn't been initialized yet, initialize it
+                    if (!initializedShapes.has(shapeType)) {
+                        initializeShape(shapeType);
+                    }
+                    
+                    // Remove active class from all cards
+                    shapeCards.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked card
+                    this.classList.add('active');
+                    
+                    // Hide all options first
+                    document.querySelectorAll('.shape-options').forEach(opt => {
+                        opt.classList.remove('visible');
+                    });
+                    
+                    // Show options for the current shape if they exist
+                    const options = document.getElementById(shapeType + 'Options');
+                    if (options) {
+                        options.classList.add('visible');
+                    }
+                    
+                    // Stop auto-rotation for all shapes
+                    Object.values(shapes).forEach(shape => {
+                        if (shape && shape.controls) {
+                            shape.controls.autoRotate = false;
+                            shape.needsRender = true;
+                        }
+                    });
+                    
+                    // Start auto-rotation for selected shape
+                    if (shapes[shapeType] && shapes[shapeType].controls) {
+                        shapes[shapeType].controls.autoRotate = true;
+                        shapes[shapeType].needsRender = true;
+                    }
+                });
+            });
+            
+            // Handle variant buttons for prisms and pyramids
+            const variantButtons = document.querySelectorAll('.btn-variant');
+            
+            variantButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent card click
+                    
+                    const shapeType = this.getAttribute('data-parent');
+                    const sides = parseInt(this.getAttribute('data-variant'));
+                    
+                    // Remove active class from all buttons in this group
+                    document.querySelectorAll(`.btn-variant[data-parent="${shapeType}"]`).forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Update the shape
+                    if (shapeType === 'prism') {
+                        createPrism(sides);
+                    } else if (shapeType === 'pyramid') {
+                        createPyramid(sides);
+                    }
+                    
+                    // Ensure this shape is active
+                    shapeCards.forEach(c => c.classList.remove('active'));
+                    document.querySelector(`.shape-card[data-shape="${shapeType}"]`).classList.add('active');
+                    
+                    // Ensure auto-rotation is on for this shape
+                    Object.values(shapes).forEach(shape => {
+                        if (shape && shape.controls) {
+                            shape.controls.autoRotate = false;
+                        }
+                    });
+                    if (shapes[shapeType] && shapes[shapeType].controls) {
+                        shapes[shapeType].controls.autoRotate = true;
+                        shapes[shapeType].needsRender = true;
+                    }
+                });
+            });
+            
+            // Optimized resize handler
+            let resizeTimeout;
+            const resizeObserver = new ResizeObserver(entries => {
+                // Skip if currently scrolling to avoid performance issues
+                if (isScrolling) return;
+                
+                // Use debouncing for resize events
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    // Handle each changed element
+                    entries.forEach(entry => {
+                        // Find the canvas element within this container
+                        const container = entry.target;
+                        const canvasElement = container.querySelector('canvas');
+                        if (!canvasElement) return;
+                        
+                        // Find associated shape
+                        for (const [shapeType, canvas] of activeShapes.entries()) {
+                            if (canvas === canvasElement) {
+                                const shape = shapes[shapeType];
+                                if (shape && shape.renderer && shape.camera) {
+                                    // Get new dimensions
+                                    const { width, height } = getCanvasDimensions(container);
+                                    
+                                    // Update renderer and camera
+                                    shape.renderer.setSize(width, height, false);
+                                    shape.camera.aspect = width / height;
+                                    shape.camera.updateProjectionMatrix();
+                                    shape.needsRender = true;
+                                }
+                                break;
+                            }
+                        }
+                    });
+                }, 100);
+            });
+            
+            // Observe all canvas containers for resize
+            document.querySelectorAll('.canvas-container').forEach(container => {
+                resizeObserver.observe(container);
+            });
+            
+            // Color scheme change detection
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                // Update colors
+                colors = updateColors();
+                
+                // Update materials in all shapes
+                Object.values(shapes).forEach(shape => {
+                    if (!shape || !shape.materials) return;
+                    
+                    shape.materials.forEach(material => {
+                        if (material.color) {
+                            if (material.type === 'MeshPhongMaterial' || material.type === 'MeshBasicMaterial') {
+                                material.color.set(material.type === 'LineBasicMaterial' ? colors.wireframeColor : colors.meshColor);
+                            } else if (material.type === 'LineBasicMaterial') {
+                                material.color.set(colors.wireframeColor);
+                            }
+                        }
+                    });
+                    
+                    // Update scene background
+                    if (shape.scene) {
+                        shape.scene.background = new THREE.Color(colors.backgroundColor);
+                    }
+                    
+                    // Mark for re-render
+                    shape.needsRender = true;
+                });
+            });
+            
+            // Initialize first visible shapes with a slight delay for better initial loading
+            setTimeout(() => {
+                const firstVisible = [];
+                document.querySelectorAll('.shape-card').forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    if (rect.top < window.innerHeight && rect.bottom > 0) {
+                        firstVisible.push(card.getAttribute('data-shape'));
+                    }
+                });
+                
+                firstVisible.forEach(shapeType => {
+                    if (!initializedShapes.has(shapeType)) {
+                        initializeShape(shapeType);
+                    }
+                });
+            }, 100);
+            
+            // Clean up resources when page is unloaded
+            window.addEventListener('beforeunload', () => {
+                // Stop animation
+                stopAnimation();
+                
+                // Dispose of all geometries and materials
+                Object.values(shapes).forEach(shape => {
+                    if (shape.geometries) {
+                        shape.geometries.forEach(geometry => {
+                            if (geometry && typeof geometry.dispose === 'function') {
+                                geometry.dispose();
+                            }
+                        });
+                    }
+                    
+                    if (shape.materials) {
+                        shape.materials.forEach(material => {
+                            if (material && typeof material.dispose === 'function') {
+                                material.dispose();
+                            }
+                        });
+                    }
+                    
+                    if (shape.renderer && typeof shape.renderer.dispose === 'function') {
+                        shape.renderer.dispose();
+                    }
+                });
+                
+                // Dispose of shared geometries
+                if (sharedGeometries.dispose) {
+                    sharedGeometries.dispose();
+                }
+                
+                // Clear observers
+                visibilityObserver.disconnect();
+                resizeObserver.disconnect();
+            });
+        });
+    </script>
+
+
+</body></html>
